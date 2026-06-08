@@ -1,1 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="MoDOT EPG">
+<meta name="theme-color" content="#b8c4d0">
+<title>MoDOT Engineering Policy Guide</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --hbg:#b8c4d0;--hborder:#9aaabb;
+  --blue:#001529;--blue2:#002d54;--blue3:#1a4a7a;--gold:#c8a84b;
+  --text:#1a1a1a;--text2:#444;--text3:#888;
+  --border:#e2e2e2;--bg:#f0f2f5;--card:#ffffff;
+  --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
+}
+@media(prefers-color-scheme:dark){:root{
+  --hbg:#152030;--hborder:#1e3248;
+  --text:#f0f0f0;--text2:#bbb;--text3:#666;
+  --border:#2a2a2a;--bg:#0d0d0d;--card:#1a1a1a;--blue3:#4a8fc4;
+}}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+.safe-top{height:var(--safe-top);background:var(--hbg);flex-shrink:0;}
+@media(prefers-color-scheme:dark){.safe-top{background:var(--hbg);}}
 
+/* TICKER */
+.ticker-wrap{background:var(--blue);overflow:hidden;height:0;transition:height 0.3s;flex-shrink:0;}
+.ticker-wrap.visible{height:30px;}
+.ticker-inner{display:flex;align-items:center;height:30px;gap:0;}
+.ticker-label{background:var(--gold);color:var(--blue);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:0 10px;height:100%;display:flex;align-items:center;flex-shrink:0;}
+.ticker-track{flex:1;overflow:hidden;position:relative;height:100%;}
+.ticker-text{white-space:nowrap;font-size:12px;color:rgba(255,255,255,0.9);position:absolute;top:50%;transform:translateY(-50%);animation:ticker 20s linear infinite;}
+@keyframes ticker{0%{left:100%;}100%{left:-200%;}}
+
+/* HEADER */
+.header{background:var(--hbg);border-bottom:0.5px solid var(--hborder);padding:10px 16px 12px;flex-shrink:0;display:none;}
+.header-row{display:flex;align-items:center;gap:12px;}
+.logo{width:42px;height:42px;border-radius:10px;overflow:hidden;flex-shrink:0;}
+.logo svg{width:42px;height:42px;display:block;}
+.header-title{color:var(--blue);font-size:15px;font-weight:700;letter-spacing:-0.3px;line-height:1.25;flex:1;}
+@media(prefers-color-scheme:dark){.header-title{color:#e0eaf5;}}
+.search-wrap{padding:8px 16px 0;background:var(--hbg);}
+.search-inner{background:rgba(0,21,41,0.1);border-radius:10px;display:flex;align-items:center;padding:0 12px;gap:8px;}
+@media(prefers-color-scheme:dark){.search-inner{background:rgba(255,255,255,0.1);}}
+.search-inner input{background:none;border:none;outline:none;color:var(--text);font-size:16px;padding:9px 0;flex:1;}
+.search-inner input::placeholder{color:var(--text3);}
+.search-inner .clr{background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px;line-height:1;display:none;}
+
+/* CONTENT + TABS */
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0;}
+.tabbar{background:var(--card);border-top:0.5px solid var(--border);display:none;padding-bottom:var(--safe-bot);flex-shrink:0;}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px 5px;cursor:pointer;color:var(--text3);font-size:10px;gap:2px;border:none;background:none;}
+.tab i{font-size:22px;line-height:1;}
+.tab.active{color:var(--blue3);}
+.view{display:none;}
+.view.active{display:block;}
+.section-label{padding:10px 16px 5px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--text3);}
+
+/* MENU */
+.menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:none;}
+.menu-overlay.open{display:block;}
+.menu-drawer{position:fixed;top:0;right:0;bottom:0;width:72%;max-width:280px;background:var(--card);z-index:201;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.25s ease;}
+.menu-drawer.open{transform:translateX(0);}
+.menu-top{background:#0a1f3d;padding:calc(var(--safe-top) + 16px) 20px 20px;display:flex;align-items:center;gap:12px;}
+.menu-top-logo{width:38px;height:38px;border-radius:9px;overflow:hidden;flex-shrink:0;}
+.menu-top-logo svg{width:38px;height:38px;display:block;}
+.menu-top-title{color:white;font-size:14px;font-weight:600;line-height:1.3;}
+.menu-item{display:flex;align-items:center;gap:14px;padding:14px 20px;cursor:pointer;border-bottom:0.5px solid var(--border);}
+.menu-item:active{background:var(--bg);}
+.mi-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.mi-icon i{font-size:17px;}
+.mi-label{font-size:15px;font-weight:500;color:var(--text);}
+.mi-sub{font-size:12px;color:var(--text3);margin-top:1px;}
+
+/* HOME */
+.home-hero{background:#001529;padding:20px 20px 24px;}
+@media(prefers-color-scheme:dark){.home-hero{background:#0a1f3d;}}
+.home-hero-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.menu-btn{background:none;border:none;color:rgba(255,255,255,0.85);cursor:pointer;padding:4px;font-size:24px;line-height:1;}
+.home-hero-title{color:white;font-size:24px;font-weight:700;letter-spacing:-0.5px;line-height:1.2;}
+.home-hero-sub{color:rgba(255,255,255,0.5);font-size:12px;margin-top:4px;}
+.home-quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:14px 14px 0;}
+.hq-card{background:var(--card);border-radius:16px;padding:14px 14px 13px;cursor:pointer;display:flex;flex-direction:column;gap:6px;border:0.5px solid var(--border);}
+.hq-card:active{opacity:0.7;}
+.hq-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+.hq-icon i{font-size:20px;}
+.hq-label{font-size:13px;font-weight:600;color:var(--text);}
+.hq-desc{font-size:11px;color:var(--text3);line-height:1.3;}
+
+/* UPDATES */
+.update-row{background:var(--card);border-bottom:0.5px solid var(--border);padding:12px 16px;display:block;text-decoration:none;color:inherit;}
+.update-row:first-of-type{border-top:0.5px solid var(--border);}
+.update-row:active{opacity:0.7;}
+.update-date{font-size:11px;font-weight:600;color:var(--blue3);margin-bottom:3px;}
+.update-title{font-size:14px;font-weight:500;line-height:1.35;}
+.loading-row{padding:24px 16px;text-align:center;color:var(--text3);font-size:14px;}
+
+/* SEARCH */
+.search-hint{padding:48px 24px;text-align:center;color:var(--text3);font-size:14px;}
+.search-hint i{font-size:36px;display:block;margin-bottom:10px;color:var(--border);}
+.result-row{background:var(--card);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:12px;padding:12px 16px;text-decoration:none;color:inherit;}
+.result-row:first-of-type{border-top:0.5px solid var(--border);}
+.result-row:active{opacity:0.7;}
+.rnum{font-size:11px;font-weight:600;color:var(--blue3);background:#e6f1fb;padding:3px 7px;border-radius:5px;white-space:nowrap;flex-shrink:0;align-self:flex-start;margin-top:2px;}
+@media(prefers-color-scheme:dark){.rnum{background:#0d2035;}}
+.rinfo .rt{font-size:15px;font-weight:500;line-height:1.3;}
+.rinfo .rs{font-size:12px;color:var(--text3);margin-top:2px;}
+.rinfo mark{background:#fff3b0;color:#1a1a1a;border-radius:2px;padding:0 1px;}
+@media(prefers-color-scheme:dark){.rinfo mark{background:#4a3a00;color:#f0f0f0;}}
+.no-results{padding:40px 24px;text-align:center;color:var(--text3);font-size:14px;}
+.no-results a{color:var(--blue3);text-decoration:none;display:block;margin-top:10px;}
+
+/* BROWSE */
+.browse-back{background:var(--card);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:6px;padding:12px 16px;cursor:pointer;color:var(--blue3);font-size:15px;}
+.browse-back:active{opacity:0.7;}
+.sec-row{background:var(--card);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;}
+.sec-row:first-of-type{border-top:0.5px solid var(--border);}
+.sec-row:active{opacity:0.7;}
+.sec-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sec-icon i{font-size:19px;}
+.sec-info{flex:1;}
+.sec-info .sn{font-size:15px;font-weight:500;}
+.sec-info .sc{font-size:12px;color:var(--text3);margin-top:1px;}
+.sec-chev{color:var(--text3);font-size:18px;}
+.art-row{background:var(--card);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:10px;padding:11px 14px 11px 16px;}
+.art-row:first-of-type{border-top:0.5px solid var(--border);}
+.art-row:active{opacity:0.7;}
+.art-num{font-size:11px;font-weight:600;color:var(--blue3);background:#e6f1fb;padding:3px 7px;border-radius:5px;white-space:nowrap;flex-shrink:0;text-decoration:none;}
+@media(prefers-color-scheme:dark){.art-num{background:#0d2035;}}
+.art-name{flex:1;font-size:15px;line-height:1.3;color:var(--text);text-decoration:none;}
+
+/* CAROUSEL */
+.carousel{position:relative;overflow:hidden;margin:0;height:180px;flex-shrink:0;}
+.carousel-track{display:flex;height:100%;transition:transform 0.45s cubic-bezier(.4,0,.2,1);}
+.carousel-slide{flex:0 0 100%;height:100%;position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:18px 20px 16px;overflow:hidden;}
+.cs-bg{position:absolute;inset:0;z-index:0;}
+.cs-content{position:relative;z-index:1;}
+.cs-eyebrow{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.8;margin-bottom:5px;}
+.cs-title{font-size:19px;font-weight:700;color:white;line-height:1.25;letter-spacing:-0.3px;}
+.cs-sub{font-size:12px;color:rgba(255,255,255,0.75);margin-top:4px;line-height:1.4;}
+.cs-btn{display:inline-block;margin-top:10px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.35);color:white;font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;text-decoration:none;backdrop-filter:blur(4px);}
+.carousel-dots{display:flex;justify-content:center;gap:5px;padding:8px 0 0;}
+.carousel-dot{width:6px;height:6px;border-radius:3px;background:var(--border);transition:all 0.3s;cursor:pointer;}
+.carousel-dot.active{width:18px;background:var(--blue3);}
+
+/* ARTICLE OF DAY STRIP */
+.aod-strip{background:var(--card);border-top:0.5px solid var(--border);border-bottom:0.5px solid var(--border);padding:11px 16px;display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;}
+.aod-strip:active{opacity:0.7;}
+.aod-badge{background:var(--gold);color:var(--blue);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:3px 7px;border-radius:5px;white-space:nowrap;flex-shrink:0;}
+.aod-text{flex:1;}
+.aod-label{font-size:11px;color:var(--text3);margin-bottom:1px;}
+.aod-name{font-size:14px;font-weight:500;color:var(--text);line-height:1.3;}
+
+/* HISTORY */
+.history-empty{padding:48px 24px;text-align:center;color:var(--text3);font-size:14px;}
+.history-empty i{font-size:36px;display:block;margin-bottom:10px;color:var(--border);}
+.hist-row{background:var(--card);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:10px;padding:11px 16px;text-decoration:none;color:inherit;}
+.hist-row:first-of-type{border-top:0.5px solid var(--border);}
+.hist-row:active{opacity:0.7;}
+.hist-num{font-size:11px;font-weight:600;color:var(--blue3);background:#e6f1fb;padding:3px 7px;border-radius:5px;white-space:nowrap;flex-shrink:0;}
+@media(prefers-color-scheme:dark){.hist-num{background:#0d2035;}}
+.hist-name{flex:1;font-size:15px;line-height:1.3;}
+.hist-time{font-size:11px;color:var(--text3);flex-shrink:0;}
+
+/* SEARCH PAGE EXTRAS */
+.search-extras{padding:12px 16px;display:flex;gap:10px;border-top:0.5px solid var(--border);}
+.se-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:11px 8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text);}
+.se-btn:active{opacity:0.7;}
+.se-btn i{font-size:18px;color:var(--blue3);}
+
+.art-bm{background:none;border:none;color:var(--text3);font-size:20px;padding:5px 3px;cursor:pointer;flex-shrink:0;line-height:1;}
+.art-bm.saved{color:var(--gold);}
+.sec-ext{background:var(--card);border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;padding:11px 16px;text-decoration:none;color:var(--blue3);font-size:13px;margin-top:4px;}
+
+/* BOOKMARKS */
+.bm-empty{padding:56px 24px;text-align:center;color:var(--text3);}
+.bm-empty i{font-size:38px;display:block;margin-bottom:10px;color:var(--border);}
+.bm-row{background:var(--card);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:10px;padding:11px 16px;text-decoration:none;color:inherit;}
+.bm-row:first-of-type{border-top:0.5px solid var(--border);}
+.bm-row:active{opacity:0.7;}
+.bm-num{font-size:11px;font-weight:600;color:var(--blue3);background:#e6f1fb;padding:3px 7px;border-radius:5px;white-space:nowrap;flex-shrink:0;}
+@media(prefers-color-scheme:dark){.bm-num{background:#0d2035;}}
+.bm-name{flex:1;font-size:15px;line-height:1.3;}
+.bm-del{background:none;border:none;color:var(--text3);font-size:19px;padding:5px 3px;cursor:pointer;flex-shrink:0;}
+
+/* RESOURCES */
+.link-row{background:var(--card);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:12px;padding:12px 16px;text-decoration:none;color:inherit;}
+.link-row:first-of-type{border-top:0.5px solid var(--border);}
+.link-row:active{opacity:0.7;}
+.lk-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.lk-icon i{font-size:17px;}
+.lk-info{flex:1;}
+.lk-info .ln{font-size:15px;font-weight:500;}
+.lk-info .ls{font-size:12px;color:var(--text3);margin-top:1px;}
+</style>
+</head>
+<body>
+<div class="safe-top"></div>
+
+<!-- TICKER -->
+<div class="ticker-wrap" id="tickerWrap">
+  <div class="ticker-inner">
+    <div class="ticker-label">Notice</div>
+    <div class="ticker-track"><div class="ticker-text" id="tickerText"></div></div>
+  </div>
+</div>
+
+<!-- HEADER (non-home tabs) -->
+<div class="header" id="mainHeader">
+  <div class="header-row">
+    <div class="logo">
+      <svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
+        <rect width="42" height="42" rx="9" fill="#0a1f3d"/>
+        <rect x="4" y="4" width="34" height="34" rx="6" fill="#0d2647"/>
+        <line x1="12" y1="37" x2="12" y2="5" stroke="#c8a84b" stroke-width="1.4" stroke-dasharray="4 3" stroke-linecap="round"/>
+        <line x1="21" y1="37" x2="21" y2="5" stroke="#c8a84b" stroke-width="2.4" stroke-linecap="round"/>
+        <line x1="30" y1="37" x2="30" y2="5" stroke="#c8a84b" stroke-width="1.4" stroke-dasharray="4 3" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="header-title">MoDOT Engineering Policy Guide</div>
+  </div>
+  <div class="search-wrap" id="searchWrap" style="display:none;">
+    <div class="search-inner">
+      <i class="ti ti-search" style="color:var(--text3);font-size:16px;"></i>
+      <input type="search" id="searchInput" placeholder="Search articles, topics…" autocomplete="off" autocorrect="off" spellcheck="false">
+      <button class="clr" id="searchClr" aria-label="Clear">✕</button>
+    </div>
+  </div>
+</div>
+
+<!-- MENU -->
+<div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
+<div class="menu-drawer" id="menuDrawer">
+  <div class="menu-top">
+    <div class="menu-top-logo">
+      <svg viewBox="0 0 38 38" xmlns="http://www.w3.org/2000/svg">
+        <rect width="38" height="38" rx="8" fill="#0a1f3d"/>
+        <rect x="3" y="3" width="32" height="32" rx="5" fill="#0d2647"/>
+        <line x1="11" y1="34" x2="11" y2="4" stroke="#c8a84b" stroke-width="1.3" stroke-dasharray="3.5 2.5" stroke-linecap="round"/>
+        <line x1="19" y1="34" x2="19" y2="4" stroke="#c8a84b" stroke-width="2.2" stroke-linecap="round"/>
+        <line x1="27" y1="34" x2="27" y2="4" stroke="#c8a84b" stroke-width="1.3" stroke-dasharray="3.5 2.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="menu-top-title">MoDOT Engineering<br>Policy Guide</div>
+  </div>
+  <div class="menu-item" onclick="goTab('search');closeMenu()">
+    <div class="mi-icon" style="background:#e6f1fb;"><i class="ti ti-search" style="color:#0c447c;"></i></div>
+    <div><div class="mi-label">Search</div><div class="mi-sub">Find by keyword or number</div></div>
+  </div>
+  <div class="menu-item" onclick="goTab('browse');closeMenu()">
+    <div class="mi-icon" style="background:#eaf3de;"><i class="ti ti-layout-list" style="color:#27500a;"></i></div>
+    <div><div class="mi-label">Browse sections</div><div class="mi-sub">All sections 100–1100</div></div>
+  </div>
+  <div class="menu-item" onclick="goTab('bookmarks');closeMenu()">
+    <div class="mi-icon" style="background:#faeeda;"><i class="ti ti-bookmark" style="color:#633806;"></i></div>
+    <div><div class="mi-label">Bookmarks</div><div class="mi-sub">Your saved articles</div></div>
+  </div>
+  <div class="menu-item" onclick="goTab('resources');closeMenu()">
+    <div class="mi-icon" style="background:#f5f0fe;"><i class="ti ti-external-link" style="color:#3c3489;"></i></div>
+    <div><div class="mi-label">Resources</div><div class="mi-sub">Specs, plans &amp; links</div></div>
+  </div>
+  <div class="menu-item" onclick="openTickerEditor();closeMenu()">
+    <div class="mi-icon" style="background:#fcebeb;"><i class="ti ti-speakerphone" style="color:#a32d2d;"></i></div>
+    <div><div class="mi-label">Edit announcement</div><div class="mi-sub">Update the scrolling notice</div></div>
+  </div>
+</div>
+
+<!-- TICKER EDITOR MODAL -->
+<div id="tickerModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;display:none;align-items:flex-end;">
+  <div style="background:var(--card);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + var(--safe-bot));width:100%;">
+    <div style="font-size:16px;font-weight:600;margin-bottom:4px;">Important Announcement</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:14px;">Shown as a scrolling ticker on the home screen</div>
+    <textarea id="tickerInput" rows="3" style="width:100%;background:var(--bg);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--text);font-family:inherit;resize:none;outline:none;line-height:1.6;" placeholder="Type your announcement…"></textarea>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:12px;">
+      <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;flex:1;">
+        <input type="checkbox" id="tickerEnabled" style="width:16px;height:16px;accent-color:var(--blue);">
+        Show ticker
+      </label>
+      <button onclick="closeTickerEditor()" style="background:none;border:0.5px solid var(--border);border-radius:10px;padding:9px 18px;font-size:14px;color:var(--text2);cursor:pointer;">Cancel</button>
+      <button onclick="saveTicker()" style="background:var(--blue);color:white;border:none;border-radius:10px;padding:9px 18px;font-size:14px;font-weight:500;cursor:pointer;">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="content" id="mainContent">
+
+  <!-- HOME -->
+  <div class="view active" id="view-home">
+    <div class="home-hero">
+      <div class="home-hero-top">
+        <div class="logo" style="width:46px;height:46px;border-radius:11px;">
+          <svg viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg" style="width:46px;height:46px;">
+            <rect width="46" height="46" rx="10" fill="#0a1f3d"/>
+            <rect x="4" y="4" width="38" height="38" rx="7" fill="#0d2647"/>
+            <line x1="13" y1="41" x2="13" y2="5" stroke="#c8a84b" stroke-width="1.5" stroke-dasharray="4.5 3" stroke-linecap="round"/>
+            <line x1="23" y1="41" x2="23" y2="5" stroke="#c8a84b" stroke-width="2.8" stroke-linecap="round"/>
+            <line x1="33" y1="41" x2="33" y2="5" stroke="#c8a84b" stroke-width="1.5" stroke-dasharray="4.5 3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <button class="menu-btn" onclick="openMenu()"><i class="ti ti-menu-2"></i></button>
+      </div>
+      <div class="home-hero-title">Engineering<br>Policy Guide</div>
+      <div class="home-hero-sub">Missouri Department of Transportation</div>
+    </div>
+
+    <!-- CAROUSEL -->
+    <div class="carousel" id="carousel">
+      <div class="carousel-track" id="carouselTrack">
+      <!-- Slide 1: Article of the Day -->
+      <div class="carousel-slide" id="aodSlide">
+        <div class="cs-bg" id="aodBg"></div>
+        <div class="cs-content">
+          <div class="cs-eyebrow" id="aodEyebrow">Article of the Day</div>
+          <div class="cs-title" id="aodTitle">Loading…</div>
+          <div class="cs-sub" id="aodSub">Tap to open on epg.modot.org</div>
+          <a class="cs-btn" id="aodBtn" href="#" target="_blank">Open Article →</a>
+        </div>
+      </div>
+      <!-- Slide 2: Bookmarks feature -->
+      <div class="carousel-slide">
+        <div class="cs-bg" style="background:linear-gradient(135deg,#1a3a5c 0%,#0d2035 60%,#c8a84b22 100%);"></div>
+        <div class="cs-content">
+          <div class="cs-eyebrow" style="color:#c8a84b;">Feature</div>
+          <div class="cs-title">Save articles<br>for the field</div>
+          <div class="cs-sub">Tap the bookmark icon on any article to save it. Access them offline anytime in Bookmarks.</div>
+          <span class="cs-btn" onclick="goTab('bookmarks')" style="cursor:pointer;">Open Bookmarks →</span>
+        </div>
+      </div>
+      <!-- Slide 3: Random Article -->
+      <div class="carousel-slide">
+        <div class="cs-bg" style="background:linear-gradient(135deg,#0a2e1a 0%,#1a4a2a 60%,#c8a84b22 100%);"></div>
+        <div class="cs-content">
+          <div class="cs-eyebrow" style="color:#6dcf94;">Discover</div>
+          <div class="cs-title">Random article —<br>something new</div>
+          <div class="cs-sub">Hit the Random button on the home screen or search page to jump to a surprise EPG article.</div>
+          <span class="cs-btn" onclick="openRandom()" style="cursor:pointer;">Random Article →</span>
+        </div>
+      </div>
+      </div><!-- end track -->
+    </div>
+    <div class="carousel-dots" id="carouselDots">
+      <div class="carousel-dot active" onclick="goSlide(0)"></div>
+      <div class="carousel-dot" onclick="goSlide(1)"></div>
+      <div class="carousel-dot" onclick="goSlide(2)"></div>
+    </div>
+
+    <!-- QUICK CARDS -->
+    <div class="home-quick">
+      <div class="hq-card" onclick="goTab('search')">
+        <div class="hq-icon" style="background:#e6f1fb;"><i class="ti ti-search" style="color:#0c447c;"></i></div>
+        <div class="hq-label">Search</div><div class="hq-desc">Articles by keyword or number</div>
+      </div>
+      <div class="hq-card" onclick="goTab('browse')">
+        <div class="hq-icon" style="background:#eaf3de;"><i class="ti ti-layout-list" style="color:#27500a;"></i></div>
+        <div class="hq-label">Browse</div><div class="hq-desc">All sections 100–1100</div>
+      </div>
+      <div class="hq-card" onclick="goTab('bookmarks')">
+        <div class="hq-icon" style="background:#faeeda;"><i class="ti ti-bookmark" style="color:#633806;"></i></div>
+        <div class="hq-label">Bookmarks</div><div class="hq-desc">Your saved articles</div>
+      </div>
+      <div class="hq-card" onclick="goTab('resources')">
+        <div class="hq-icon" style="background:#f5f0fe;"><i class="ti ti-external-link" style="color:#3c3489;"></i></div>
+        <div class="hq-label">Resources</div><div class="hq-desc">Specs, plans &amp; links</div>
+      </div>
+      <div class="hq-card" onclick="openRandom()">
+        <div class="hq-icon" style="background:#e1f5ee;"><i class="ti ti-dice-3" style="color:#085041;"></i></div>
+        <div class="hq-label">Random</div><div class="hq-desc">Surprise EPG article</div>
+      </div>
+      <div class="hq-card" onclick="goTab('history')">
+        <div class="hq-icon" style="background:#fcebeb;"><i class="ti ti-clock-hour-4" style="color:#a32d2d;"></i></div>
+        <div class="hq-label">History</div><div class="hq-desc">Last 10 articles viewed</div>
+      </div>
+    </div>
+
+    <!-- ARTICLE OF DAY PERSISTENT STRIP -->
+    <a class="aod-strip" id="aodStrip" href="#" target="_blank">
+      <div class="aod-badge">Today</div>
+      <div class="aod-text">
+        <div class="aod-label">Article of the Day</div>
+        <div class="aod-name" id="aodStripName">Loading…</div>
+      </div>
+      <i class="ti ti-chevron-right" style="color:var(--text3);font-size:16px;"></i>
+    </a>
+
+    <div class="section-label" style="margin-top:8px;">Recent policy changes</div>
+    <div id="updatesContainer"><div class="loading-row">Loading…</div></div>
+    <div style="height:16px;"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="view" id="view-history">
+    <div id="histContainer"></div>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="view" id="view-search">
+    <div class="search-hint" id="searchHint"><i class="ti ti-search"></i>Type to search all EPG articles</div>
+    <div id="searchResults"></div>
+    <div class="search-extras" id="searchExtras">
+      <div class="se-btn" onclick="openRandom()"><i class="ti ti-dice-3"></i>Random Article</div>
+      <div class="se-btn" onclick="goTab('history')"><i class="ti ti-clock-hour-4"></i>History</div>
+    </div>
+  </div>
+
+  <!-- BROWSE -->
+  <div class="view" id="view-browse">
+    <div id="browseMain"></div>
+    <div id="browseSub" style="display:none;"></div>
+  </div>
+
+  <!-- BOOKMARKS -->
+  <div class="view" id="view-bookmarks">
+    <div id="bmContainer"></div>
+  </div>
+
+  <!-- RESOURCES -->
+  <div class="view" id="view-resources">
+    <div style="height:8px;"></div>
+    <div class="section-label">EPG quick links</div>
+    <div id="quickLinksEl"></div>
+    <div class="section-label" style="margin-top:8px;">Other MoDOT standards</div>
+    <div id="otherLinksEl"></div>
+    <div style="padding:16px;font-size:12px;color:var(--text3);text-align:center;">All links open epg.modot.org in your browser</div>
+  </div>
+
+</div>
+
+<!-- BOTTOM TABS -->
+<div class="tabbar" id="tabbar">
+  <button class="tab" id="tab-search" onclick="goTab('search')"><i class="ti ti-search"></i>Search</button>
+  <button class="tab" id="tab-browse" onclick="goTab('browse')"><i class="ti ti-layout-list"></i>Browse</button>
+  <button class="tab" id="tab-bookmarks" onclick="goTab('bookmarks')"><i class="ti ti-bookmark"></i>Bookmarks</button>
+  <button class="tab" id="tab-resources" onclick="goTab('resources')"><i class="ti ti-external-link"></i>Resources</button>
+  <button class="tab" id="tab-history" onclick="goTab('history')"><i class="ti ti-clock-hour-4"></i>History</button>
+  <button class="tab" id="tab-home" onclick="goTab('home')"><i class="ti ti-home"></i>Home</button>
+</div>
+
+<script>
+const EPG='https://epg.modot.org/index.php/';
+const TABS=['home','search','browse','bookmarks','resources','history'];
+
+// All slugs 100% verified by direct page fetch June 2026
+const SECTIONS=[
+  {num:'100',name:'General',icon:'ti-clipboard-list',bg:'#e6f1fb',ic:'#0c447c',slug:'Category:100_GENERAL',articles:[
+    {num:'101',name:'Standard Forms',slug:'Category:101_Standard_Forms'},
+    {num:'102',name:'Bidding Requirements and Conditions',slug:'Category:102_Bidding_Requirements_and_Conditions'},
+    {num:'103',name:'Award and Execution of Contract',slug:'Category:103_Award_and_Execution_of_Contract'},
+    {num:'104',name:'Scope',slug:'Category:104_Scope'},
+    {num:'105',name:'Control of Work',slug:'Category:105_Control_of_Work'},
+    {num:'106',name:'Control of Material',slug:'Category:106_Control_of_Material'},
+    {num:'107',name:'Legal Relations and Responsibility to the Public',slug:'Category:107_Legal_Relations_and_Responsibility_to_the_Public'},
+    {num:'108',name:'Prosecution and Progress',slug:'Category:108_Prosecution_and_Progress'},
+    {num:'109',name:'Measurement and Payment',slug:'Category:109_Measurement_and_Payment'},
+    {num:'110',name:'State and Federal Wage Rates and Other Requirements',slug:'Category:110_State_and_Federal_Wage_Rates_and_Other_Requirements'},
+    {num:'121',name:'Project Planning, Prioritization and STIP Commitments',slug:'Category:121_Project_Planning,_Prioritization_and_STIP_Commitments'},
+    {num:'127',name:'MoDOT and the Environment',slug:'Category:127_MoDOT_and_the_Environment'},
+    {num:'130',name:'Value Engineering',slug:'Category:130_Value_Engineering'},
+    {num:'131',name:'Other General Procedures',slug:'Category:131_Other_General_Procedures'},
+    {num:'132',name:'Safety',slug:'Category:132_Safety'},
+    {num:'133',name:'Snow and Ice Control',slug:'Category:133_Snow_and_Ice_Control'},
+    {num:'134',name:'Engineering Professional Services',slug:'Category:134_Engineering_Professional_Services'},
+    {num:'136',name:'Local Public Agency (LPA) Policy',slug:'LPA:136_Local_Public_Agency_(LPA)_Policy'},
+    {num:'143',name:'Practical Design',slug:'Category:143_Practical_Design'},
+    {num:'160',name:'Utilities',slug:'Category:160_Utilities'},
+    {num:'170',name:'Right of Way',slug:'Category:170_Right_of_Way'},
+  ]},
+  {num:'200',name:'Geometrics / Earthwork',icon:'ti-ruler-2',bg:'#eaf3de',ic:'#27500a',slug:'Category:200_GEOMETRICS',articles:[
+    {num:'201',name:'Clearing and Grubbing',slug:'Category:201_Clearing_and_Grubbing'},
+    {num:'203',name:'Roadway and Drainage Excavation, Embankment and Compaction',slug:'Category:203_Roadway_and_Drainage_Excavation,_Embankment_and_Compaction'},
+    {num:'205',name:'Modified Subgrade',slug:'Category:205_Modified_Subgrade'},
+    {num:'209',name:'Subgrade Preparation',slug:'Category:209_Subgrade_Preparation'},
+    {num:'230',name:'Alignment of the Roadway',slug:'Category:230_Alignment_of_the_Roadway'},
+    {num:'231',name:'Typical Section Elements for Roadways',slug:'Category:231_Typical_Section_Elements_for_Roadways'},
+    {num:'320',name:'Soils and Geology',slug:'Category:320_Soils_and_Geology'},
+    {num:'321',name:'Geotechnical Engineering',slug:'Category:321_Geotechnical_Engineering'},
+  ]},
+  {num:'300',name:'Bases',icon:'ti-layer-intersect',bg:'#faeeda',ic:'#633806',slug:'Category:300_BASES',articles:[
+    {num:'302',name:'Stabilized Permeable Base',slug:'Category:302_Stabilized_Permeable_Base'},
+    {num:'303',name:'Rock Base',slug:'Category:303_Rock_Base'},
+    {num:'304',name:'Aggregate Base Course',slug:'Category:304_Aggregate_Base_Course'},
+    {num:'309',name:'Laboratory Testing Guidelines for PCC Base',slug:'Category:309_Laboratory_Testing_Guidelines_for_Portland_Cement_Concrete_Base'},
+    {num:'310',name:'Aggregate Surface',slug:'Category:310_Aggregate_Surface'},
+    {num:'320',name:'Soils and Geology',slug:'Category:320_Soils_and_Geology'},
+    {num:'350',name:'Design for Bases and Aggregate Surfaces',slug:'Category:350_Design_for_Bases_and_Aggregate_Surfaces'},
+    {num:'360',name:'Construction Inspection for Bases and Aggregate Surfaces',slug:'Category:360_Construction_Inspection_for_Bases_and_Aggregate_Surfaces'},
+  ]},
+  {num:'400',name:'Flexible Pavement',icon:'ti-road',bg:'#f5f0fe',ic:'#3c3489',slug:'Category:400_FLEXIBLE_PAVEMENT',articles:[
+    {num:'401',name:'Bituminous Base and Pavement',slug:'Category:401_Bituminous_Base_and_Pavement'},
+    {num:'402',name:'Bituminous Surface Leveling',slug:'Category:402_Bituminous_Surface_Leveling'},
+    {num:'403',name:'Asphaltic Concrete Pavement',slug:'Category:403_Asphaltic_Concrete_Pavement'},
+    {num:'404',name:'Bituminous Mixing Plants',slug:'Category:404_Bituminous_Mixing_Plants'},
+    {num:'405',name:'Processing Reclaimed Asphalt',slug:'Category:405_Processing_Reclaimed_Asphalt'},
+    {num:'407',name:'Tack Coat',slug:'Category:407_Tack_Coat'},
+    {num:'408',name:'Prime Coat',slug:'Category:408_Prime_Coat'},
+    {num:'409',name:'Seal Coat',slug:'Category:409_Seal_Coat'},
+    {num:'413',name:'Surface Treatments and Preventive Maintenance',slug:'Category:413_Surface_Treatments_and_Preventive_Maintenance'},
+    {num:'450',name:'Bituminous Pavement Design',slug:'Category:450_Bituminous_Pavement_Design'},
+    {num:'460',name:'General Requirements for Bituminous Construction',slug:'Category:460_General_Requirements_for_Bituminous_Construction'},
+    {num:'470',name:'Bituminous Asphalt Maintenance',slug:'Category:470_Bituminous_Asphalt_Maintenance'},
+  ]},
+  {num:'500',name:'Rigid Pavement',icon:'ti-grid-dots',bg:'#e6f1fb',ic:'#0c447c',slug:'Category:500_RIGID_PAVEMENT',articles:[
+    {num:'501',name:'Concrete',slug:'Category:501_Concrete'},
+    {num:'502',name:'Portland Cement Concrete Base and Pavement',slug:'Category:502_Portland_Cement_Concrete_Base_and_Pavement'},
+    {num:'503',name:'Bridge Approach Slabs',slug:'Category:503_Bridge_Approach_Slabs'},
+    {num:'504',name:'Concrete Approach Pavement',slug:'Category:504_Concrete_Approach_Pavement'},
+    {num:'505',name:'Bridge Deck Concrete Wearing Surface',slug:'Category:505_Bridge_Deck_Concrete_Wearing_Surface'},
+    {num:'506',name:'Concrete Overlays for Pavement',slug:'Category:506_Concrete_Overlays_for_Pavement'},
+    {num:'550',name:'Portland Cement Concrete Pavement Design',slug:'Category:550_Portland_Cement_Concrete_Pavement_Design'},
+    {num:'570',name:'Portland Cement Concrete Pavement Maintenance',slug:'Category:570_Portland_Cement_Concrete_Pavement_Maintenance'},
+  ]},
+  {num:'600',name:'Incidental Construction',icon:'ti-tools',bg:'#fcebeb',ic:'#a32d2d',slug:'Category:600_INCIDENTAL_CONSTRUCTION',articles:[
+    {num:'601',name:'Field Laboratories',slug:'Category:601_Field_Laboratories'},
+    {num:'602',name:'Drain and Right of Way Markers',slug:'Category:602_Drain_and_Right_of_Way_Markers'},
+    {num:'604',name:'Miscellaneous Drainage',slug:'Category:604_Miscellaneous_Drainage'},
+    {num:'605',name:'Underdrainage',slug:'Category:605_Underdrainage'},
+    {num:'606',name:'Guardrail and Guard Cable',slug:'Category:606_Guardrail_and_Guard_Cable'},
+    {num:'606.1',name:'Guardrail',slug:'606.1_Guardrail'},
+    {num:'606.2',name:'Guard Cable',slug:'606.2_Guard_Cable'},
+    {num:'607',name:'Fencing',slug:'Category:607_Fencing'},
+    {num:'608',name:'Concrete Median, Sidewalk, Curb Ramps',slug:'Category:608_Concrete_Median,_Median_Strip,_Sidewalk,_Curb_Ramps,_Steps_and_Paved_Approaches'},
+    {num:'609',name:'Paved Drainage',slug:'Category:609_Paved_Drainage'},
+    {num:'610',name:'Pavement Smoothness',slug:'Category:610_Pavement_Smoothness'},
+    {num:'611',name:'Embankment Protection',slug:'Category:611_Embankment_Protection'},
+    {num:'612',name:'Impact Attenuators',slug:'Category:612_Impact_Attenuators'},
+    {num:'613',name:'Pavement Repair',slug:'Category:613_Pavement_Repair'},
+    {num:'616',name:'Temporary Traffic Control (MUTCD Part 6)',slug:'Category:616_Temporary_Traffic_Control_(MUTCD_Part_6)'},
+  ]},
+  {num:'700',name:'Structures and Hydraulics',icon:'ti-building-bridge',bg:'#e1f5ee',ic:'#085041',slug:'Category:700_STRUCTURES_AND_HYDRAULICS',articles:[
+    {num:'701',name:'Drilled Shafts',slug:'Category:701_Drilled_Shafts'},
+    {num:'702',name:'Load-Bearing Piles',slug:'Category:702_Load-Bearing_Piles'},
+    {num:'703',name:'Concrete Masonry Construction',slug:'Category:703_Concrete_Masonry_Construction'},
+    {num:'705',name:'Prestressed Concrete Members for Bridges',slug:'Category:705_Prestressed_Concrete_Members_for_Bridges'},
+    {num:'706',name:'Reinforcing Steel for Concrete Structures',slug:'Category:706_Reinforcing_Steel_for_Concrete_Structures'},
+    {num:'712',name:'Structural Steel Construction',slug:'Category:712_Structural_Steel_Construction'},
+    {num:'713',name:'Thrie Beam for Bridge Guardrail',slug:'Category:713_Thrie_Beam_for_Bridge_Guardrail'},
+    {num:'716',name:'Neoprene Bearings',slug:'Category:716_Neoprene_Bearings'},
+    {num:'720',name:'Mechanically Stabilized Earth Wall Systems',slug:'Category:720_Mechanically_Stabilized_Earth_Wall_Systems'},
+    {num:'745',name:'Culverts',slug:'Category:745_Culverts'},
+    {num:'747',name:'Hydraulics',slug:'Category:747_Hydraulics'},
+    {num:'748',name:'Stream Stability',slug:'Category:748_Stream_Stability'},
+    {num:'749',name:'Hydrologic Analysis',slug:'Category:749_Hydrologic_Analysis'},
+    {num:'750',name:'Structural Concrete',slug:'Category:750_Structural_Concrete'},
+    {num:'751',name:'Steel Structures',slug:'Category:751_Steel_Structures'},
+    {num:'753',name:'Prestressed Concrete',slug:'Category:753_Prestressed_Concrete'},
+    {num:'756',name:'Foundations',slug:'Category:756_Foundations'},
+  ]},
+  {num:'800',name:'Roadside Development',icon:'ti-trees',bg:'#eaf3de',ic:'#27500a',slug:'Category:800_ROADSIDE_DEVELOPMENT',articles:[
+    {num:'801',name:'Lime and Fertilizer',slug:'Category:801_Lime_and_Fertilizer'},
+    {num:'802',name:'Mulching',slug:'Category:802_Mulching'},
+    {num:'803',name:'Sodding',slug:'Category:803_Sodding'},
+    {num:'804',name:'Topsoil',slug:'Category:804_Topsoil'},
+    {num:'805',name:'Seeding',slug:'Category:805_Seeding'},
+    {num:'806',name:'Pollution, Erosion and Sediment Control',slug:'Category:806_Pollution,_Erosion_and_Sediment_Control'},
+    {num:'808',name:'Planting Trees, Shrubs, and Other Plants',slug:'Category:808_Planting_Trees,_Shrubs,_and_Other_Plants'},
+    {num:'821',name:'Herbicides and Roadsides',slug:'Category:821_Herbicides_and_Roadsides'},
+  ]},
+  {num:'900',name:'Traffic Control',icon:'ti-traffic-lights',bg:'#fcebeb',ic:'#a32d2d',slug:'Category:900_TRAFFIC_CONTROL',articles:[
+    {num:'901',name:'Lighting',slug:'Category:901_Lighting'},
+    {num:'902',name:'Signals (MUTCD Part 4)',slug:'Category:902_Signals_(MUTCD_Part_4)'},
+    {num:'903',name:'Highway Signing (MUTCD Part 2)',slug:'Category:903_Highway_Signing_(MUTCD_Part_2)'},
+    {num:'905',name:'Traffic Studies',slug:'Category:905_Traffic_Studies'},
+    {num:'907',name:'Traffic Safety',slug:'Category:907_Traffic_Safety'},
+    {num:'908',name:'Traffic Controls for School Areas (MUTCD Part 7)',slug:'Category:908_Traffic_Controls_for_School_Areas_(MUTCD_Part_7)'},
+    {num:'909',name:'Transportation Systems Management and Operations',slug:'Category:909_Transportation_Systems_Management_and_Operations_(TSMO)'},
+    {num:'910',name:'Intelligent Transportation Systems',slug:'Category:910_Intelligent_Transportation_Systems'},
+    {num:'911',name:'General (MUTCD Part 1)',slug:'Category:911_General_(MUTCD_Part_1)'},
+    {num:'913',name:'Traffic Control for Railroad Grade Crossings (MUTCD Part 8)',slug:'Category:913_Traffic_Control_for_Railroad_and_Light_Rail_Transit_Grade_Crossings_(MUTCD_Part_8)'},
+    {num:'914',name:'Traffic Control for Bicycle Facilities (MUTCD Part 9)',slug:'Category:914_Traffic_Control_for_Bicycle_Facilities_(MUTCD_Part_9)'},
+    {num:'940',name:'Access Management',slug:'Category:940_Access_Management'},
+    {num:'941',name:'Permits and Access Requests',slug:'Category:941_Permits_and_Access_Requests'},
+    {num:'945',name:'Overdimension / Overweight Permits',slug:'Category:945_Overdimension_/_Overweight_Permits'},
+    {num:'949',name:'Other Aspects of Traffic',slug:'Category:949_Other_Aspects_of_Traffic'},
+  ]},
+  {num:'1000',name:'Materials',icon:'ti-flask',bg:'#f5f0fe',ic:'#3c3489',slug:'Category:1000_MATERIALS',articles:[
+    {num:'1001',name:'General Requirements for Material',slug:'Category:1001_General_Requirements_for_Material'},
+    {num:'1002',name:'Aggregate for Asphaltic Concrete',slug:'Category:1002_Aggregate_for_Asphaltic_Concrete'},
+    {num:'1005',name:'Aggregate for Concrete',slug:'Category:1005_Aggregate_for_Concrete'},
+    {num:'1007',name:'Aggregate for Base',slug:'Category:1007_Aggregate_for_Base'},
+    {num:'1009',name:'Aggregate for Drainage',slug:'Category:1009_Aggregate_for_Drainage'},
+    {num:'1010',name:'Select Granular Backfill for Structural Systems',slug:'Category:1010_Select_Granular_Backfill_for_Structural_Systems'},
+    {num:'1011',name:'Geotextile',slug:'Category:1011_Geotextile'},
+    {num:'1015',name:'Bituminous Material',slug:'Category:1015_Bituminous_Material'},
+    {num:'1019',name:'Cement',slug:'Category:1019_Cement'},
+    {num:'1020',name:'Corrugated Metallic-Coated Steel Culvert Pipe',slug:'Category:1020_Corrugated_Metallic-Coated_Steel_Culvert_Pipe,_Pipe-Arches_and_End_Sections'},
+  ]},
+  {num:'1100',name:'Maintenance Materials',icon:'ti-wrench',bg:'#faeeda',ic:'#633806',slug:'Category:1100_MAINTENANCE_MATERIALS',articles:[
+    {num:'1101',name:'Materials Purchased by a Department Purchase Order',slug:'Category:1101_Materials_Purchased_by_a_Department_Purchase_Order'},
+    {num:'1102',name:'Antifreeze and Summer Coolant',slug:'Category:1102_Antifreeze_and_Summer_Coolant'},
+    {num:'1106',name:'Carbide-Tipped Snowplow Blades',slug:'Category:1106_Carbide-Tipped_Snowplow_Blades'},
+    {num:'1110',name:'Calcium Chloride',slug:'Category:1110_Calcium_Chloride'},
+    {num:'1115',name:'Polyethylene Plastic Pipe Liner',slug:'Category:1115_Polyethylene_Plastic_Pipe_Liner'},
+    {num:'1120',name:'Yellow and White Traffic Marking Materials',slug:'Category:1120_Yellow_and_White_Traffic_Marking_Materials'},
+    {num:'1124',name:'Sodium Chloride',slug:'Category:1124_Sodium_Chloride'},
+    {num:'1180',name:'Bituminous Stockpile Patching Material',slug:'Category:1180_Bituminous_Stockpile_Patching_Material'},
+  ]},
+];
+
+const QUICK_LINKS=[
+  {icon:'ti-history',bg:'#e6f1fb',ic:'#0c447c',name:'Recent Policy Changes',desc:'Latest EPG updates',slug:'Recent_Policy_Changes_in_the_EPG'},
+  {icon:'ti-list-check',bg:'#eaf3de',ic:'#27500a',name:'Quick Reference Guides',desc:'Standard forms and QRGs',slug:'Category:101_Standard_Forms'},
+  {icon:'ti-cone',bg:'#fcebeb',ic:'#a32d2d',name:'Temporary Traffic Control',desc:'EPG 616',slug:'Category:616_Temporary_Traffic_Control_(MUTCD_Part_6)'},
+  {icon:'ti-help-circle',bg:'#f5f0fe',ic:'#3c3489',name:'EPG Help Article',desc:'How to use the EPG',slug:'Help_Article'},
+];
+const OTHER_LINKS=[
+  {icon:'ti-book',bg:'#e6f1fb',ic:'#0c447c',name:'Standard Specifications',desc:'Missouri highway construction specs',url:'https://www.modot.org/missouri-standard-specifications-highway-construction'},
+  {icon:'ti-map',bg:'#eaf3de',ic:'#27500a',name:'Standard Plans',desc:'Missouri highway construction plans',url:'https://www.modot.org/missouri-standard-plans-highway-construction'},
+  {icon:'ti-file-text',bg:'#faeeda',ic:'#633806',name:'Job Special Provisions',desc:'Project-specific provisions',url:EPG+'Job_Special_Provisions'},
+  {icon:'ti-letter-case',bg:'#f5f0fe',ic:'#3c3489',name:'Design Standard Letters',desc:'Design guidance letters',url:'https://www.modot.org/design-standard-letters'},
+  {icon:'ti-search',bg:'#fcebeb',ic:'#a32d2d',name:'Full EPG Web Search',desc:'Search epg.modot.org',url:'https://epg.modot.org/index.php?search'},
+];
+
+let bookmarks=JSON.parse(localStorage.getItem('epg_bm')||'[]');
+let tickerText=localStorage.getItem('epg_ticker')||'';
+let tickerOn=localStorage.getItem('epg_ticker_on')==='1';
+let searchTimer=null;
+
+function saveBookmarks(){localStorage.setItem('epg_bm',JSON.stringify(bookmarks));}
+
+/* TICKER */
+function renderTicker(){
+  const wrap=document.getElementById('tickerWrap');
+  const txt=document.getElementById('tickerText');
+  if(tickerOn&&tickerText){
+    txt.textContent=tickerText+'     •     '+tickerText;
+    wrap.classList.add('visible');
+  } else {
+    wrap.classList.remove('visible');
+  }
+}
+function openTickerEditor(){
+  document.getElementById('tickerInput').value=tickerText;
+  document.getElementById('tickerEnabled').checked=tickerOn;
+  document.getElementById('tickerModal').style.display='flex';
+}
+function closeTickerEditor(){document.getElementById('tickerModal').style.display='none';}
+function saveTicker(){
+  tickerText=document.getElementById('tickerInput').value.trim();
+  tickerOn=document.getElementById('tickerEnabled').checked;
+  localStorage.setItem('epg_ticker',tickerText);
+  localStorage.setItem('epg_ticker_on',tickerOn?'1':'0');
+  renderTicker();
+  closeTickerEditor();
+}
+renderTicker();
+
+/* TABS */
+function goTab(t){
+  TABS.forEach(id=>{
+    document.getElementById('view-'+id).classList.toggle('active',id===t);
+    const tb=document.getElementById('tab-'+id);
+    if(tb) tb.classList.toggle('active',id===t);
+  });
+  const isHome=t==='home';
+  document.getElementById('mainHeader').style.display=isHome?'none':'block';
+  document.getElementById('tabbar').style.display=isHome?'none':'flex';
+  document.getElementById('searchWrap').style.display=t==='search'?'block':'none';
+  document.getElementById('mainContent').scrollTop=0;
+  if(t==='browse') renderBrowseMain();
+  if(t==='bookmarks') renderBookmarks();
+  if(t==='resources') renderResources();
+  if(t==='history') renderHistory();
+  if(t==='search') setTimeout(()=>document.getElementById('searchInput').focus(),100);
+}
+
+/* MENU */
+function openMenu(){document.getElementById('menuOverlay').classList.add('open');document.getElementById('menuDrawer').classList.add('open');}
+function closeMenu(){document.getElementById('menuOverlay').classList.remove('open');document.getElementById('menuDrawer').classList.remove('open');}
+
+/* UPDATES */
+async function loadUpdates(){
+  const el=document.getElementById('updatesContainer');
+  try{
+    const r=await fetch('https://epg.modot.org/api.php?action=parse&page=Recent_Policy_Changes_in_the_EPG&prop=wikitext&format=json&origin=*');
+    const d=await r.json();
+    const wt=d.parse.wikitext['*'];
+    const items=[];
+    let date='';
+    for(const line of wt.split('\n')){
+      const dm=line.match(/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}/i);
+      if(dm){date=dm[0];continue;}
+      if(line.trim().startsWith('*')&&date){
+        const lm=line.match(/\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]/);
+        const title=line.replace(/\[\[([^\]|#]+)(?:\|([^\]]+))?\]\]/g,(_,t,l)=>l||t).replace(/[*'[\]]/g,'').trim();
+        const slug=lm?lm[1].replace(/\s/g,'_'):'Recent_Policy_Changes_in_the_EPG';
+        items.push({date,title:title.length>100?title.slice(0,100)+'…':title,slug});
+        if(items.length>=10)break;
+      }
+    }
+    if(!items.length)throw new Error('empty');
+    el.innerHTML=items.map(b=>`<a class="update-row" href="${EPG}${b.slug}" target="_blank"><div class="update-date">${b.date}</div><div class="update-title">${b.title}</div></a>`).join('');
+  }catch(e){
+    el.innerHTML=`<a class="update-row" href="${EPG}Recent_Policy_Changes_in_the_EPG" target="_blank"><div class="update-date">View all updates</div><div class="update-title">Recent Policy Changes in the EPG →</div></a>`;
+  }
+}
+
+/* SEARCH */
+document.getElementById('searchInput').addEventListener('input',function(){
+  const q=this.value.trim();
+  document.getElementById('searchClr').style.display=q?'inline':'none';
+  clearTimeout(searchTimer);searchTimer=setTimeout(()=>runSearch(q),180);
+});
+document.getElementById('searchClr').addEventListener('click',function(){
+  document.getElementById('searchInput').value='';this.style.display='none';runSearch('');
+});
+function runSearch(q){
+  const res=document.getElementById('searchResults'),hint=document.getElementById('searchHint');
+  const extras=document.getElementById('searchExtras');
+  if(!q){res.innerHTML='';hint.style.display='block';if(extras)extras.style.display='flex';return;}
+  hint.style.display='none';
+  if(extras)extras.style.display='none';
+  const lo=q.toLowerCase(),matches=[];
+  SECTIONS.forEach(s=>s.articles.forEach(a=>{
+    const score=a.num.startsWith(lo)?3:a.name.toLowerCase().includes(lo)?2:a.num.toLowerCase().includes(lo)?2:s.name.toLowerCase().includes(lo)?1:0;
+    if(score>0)matches.push({...a,sname:s.name,score});
+  }));
+  matches.sort((a,b)=>b.score-a.score);
+  const esc=q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const hl=t=>t.replace(new RegExp('('+esc+')','gi'),'<mark>$1</mark>');
+  if(!matches.length){res.innerHTML=`<div class="no-results">No matches for "<strong>${q}</strong>"<a href="https://epg.modot.org/index.php?search=${encodeURIComponent(q)}" target="_blank">Search full EPG on web →</a></div>`;return;}
+  const saved=(num)=>bookmarks.some(b=>b.num===num);
+  res.innerHTML=matches.slice(0,25).map(m=>`
+    <div class="result-row">
+      <a class="rnum" href="${EPG}${m.slug}" target="_blank">${m.num}</a>
+      <a class="rinfo" href="${EPG}${m.slug}" target="_blank" style="flex:1;text-decoration:none;color:inherit;">
+        <div class="rt">${hl(m.name)}</div><div class="rs">${m.sname}</div>
+      </a>
+      <button class="art-bm${saved(m.num)?' saved':''}" onclick="toggleBmDirect('${m.num}','${m.name.replace(/'/g,"\\'")}','${m.slug}',this)">
+        <i class="ti ${saved(m.num)?'ti-bookmark-filled':'ti-bookmark'}"></i>
+      </button>
+    </div>`).join('')+`
+    <a class="result-row" href="https://epg.modot.org/index.php?search=${encodeURIComponent(q)}" target="_blank" style="border-top:1px solid var(--border);">
+      <span class="rnum" style="background:var(--blue2);color:white;">EPG</span>
+      <div class="rinfo" style="flex:1;"><div class="rt">Search full EPG for "${q}"</div><div class="rs">Opens epg.modot.org</div></div>
+    </a>`;
+}
+
+/* BROWSE */
+function renderBrowseMain(){
+  const el=document.getElementById('browseMain');
+  if(el.dataset.built)return;
+  el.dataset.built='1';
+  el.innerHTML='<div style="height:8px;"></div>'+SECTIONS.map(s=>`
+    <div class="sec-row" onclick="openSection('${s.num}')">
+      <div class="sec-icon" style="background:${s.bg};"><i class="ti ${s.icon}" style="color:${s.ic};"></i></div>
+      <div class="sec-info"><div class="sn">${s.num} — ${s.name}</div><div class="sc">${s.articles.length} article${s.articles.length!==1?'s':''}</div></div>
+      <i class="ti ti-chevron-right sec-chev"></i>
+    </div>`).join('');
+}
+
+function openSection(num){
+  const s=SECTIONS.find(x=>x.num===num);if(!s)return;
+  document.getElementById('browseMain').style.display='none';
+  const sub=document.getElementById('browseSub');
+  sub.innerHTML=`<div class="browse-back" onclick="closeSection()"><i class="ti ti-chevron-left"></i> Sections</div>
+    <div class="section-label">${s.num} — ${s.name}</div>`+
+    s.articles.map(a=>{
+      const sv=bookmarks.some(b=>b.num===a.num);
+      return `<div class="art-row">
+        <a class="art-num" href="${EPG}${a.slug}" target="_blank">${a.num}</a>
+        <a class="art-name" href="${EPG}${a.slug}" target="_blank">${a.name}</a>
+        <button class="art-bm${sv?' saved':''}" onclick="toggleBm('${a.num}','${a.name.replace(/'/g,"\\'")}','${a.slug}',this)">
+          <i class="ti ${sv?'ti-bookmark-filled':'ti-bookmark'}"></i>
+        </button>
+      </div>`;
+    }).join('')+`
+    <a class="sec-ext" href="${EPG}${s.slug}" target="_blank">
+      <i class="ti ti-external-link"></i> View full section on epg.modot.org
+    </a>`;
+  sub.style.display='block';
+  document.getElementById('mainContent').scrollTop=0;
+  // track history on tap
+  sub.querySelectorAll('.art-name,.art-num').forEach(el=>{
+    el.addEventListener('click',function(){
+      const row=this.closest('.art-row');
+      if(!row) return;
+      const n=row.querySelector('.art-num'),nm=row.querySelector('.art-name');
+      if(n&&nm){const href=n.getAttribute('href')||nm.getAttribute('href')||'';addToHistory(n.textContent.trim(),nm.textContent.trim(),href.replace(EPG,''));}
+    });
+  });
+}
+
+function closeSection(){
+  document.getElementById('browseSub').style.display='none';
+  document.getElementById('browseMain').style.display='block';
+  document.getElementById('mainContent').scrollTop=0;
+}
+
+function toggleBm(num,name,slug,btn){
+  const idx=bookmarks.findIndex(b=>b.num===num);
+  if(idx>=0){bookmarks.splice(idx,1);btn.classList.remove('saved');btn.innerHTML='<i class="ti ti-bookmark"></i>';}
+  else{bookmarks.push({num,name,slug});btn.classList.add('saved');btn.innerHTML='<i class="ti ti-bookmark-filled"></i>';}
+  saveBookmarks();
+}
+function toggleBmDirect(num,name,slug,btn){
+  toggleBm(num,name,slug,btn);
+}
+
+/* BOOKMARKS */
+function renderBookmarks(){
+  const el=document.getElementById('bmContainer');
+  if(!bookmarks.length){
+    el.innerHTML=`<div class="bm-empty"><i class="ti ti-bookmark"></i>No bookmarks yet.<br><span style="font-size:13px;margin-top:6px;display:block;">Browse or search, then tap the bookmark icon on any article.</span></div>`;
+    return;
+  }
+  el.innerHTML='<div style="height:8px;"></div>'+bookmarks.map(b=>`
+    <a class="bm-row" href="${EPG}${b.slug||b.num}" target="_blank">
+      <span class="bm-num">${b.num}</span>
+      <span class="bm-name">${b.name}</span>
+      <button class="bm-del" onclick="event.preventDefault();event.stopPropagation();removeBm('${b.num}')"><i class="ti ti-trash"></i></button>
+    </a>`).join('');
+}
+function removeBm(num){bookmarks=bookmarks.filter(b=>b.num!==num);saveBookmarks();renderBookmarks();}
+
+/* RESOURCES */
+function renderResources(){
+  const qel=document.getElementById('quickLinksEl');
+  if(qel.dataset.built)return;
+  qel.dataset.built='1';
+  qel.innerHTML=QUICK_LINKS.map(l=>`
+    <a class="link-row" href="${EPG}${l.slug}" target="_blank">
+      <div class="lk-icon" style="background:${l.bg};"><i class="ti ${l.icon}" style="color:${l.ic};"></i></div>
+      <div class="lk-info"><div class="ln">${l.name}</div><div class="ls">${l.desc}</div></div>
+      <i class="ti ti-chevron-right" style="color:var(--text3);font-size:14px;"></i>
+    </a>`).join('');
+  document.getElementById('otherLinksEl').innerHTML=OTHER_LINKS.map(l=>`
+    <a class="link-row" href="${l.url}" target="_blank">
+      <div class="lk-icon" style="background:${l.bg};"><i class="ti ${l.icon}" style="color:${l.ic};"></i></div>
+      <div class="lk-info"><div class="ln">${l.name}</div><div class="ls">${l.desc}</div></div>
+      <i class="ti ti-external-link" style="color:var(--text3);font-size:14px;"></i>
+    </a>`).join('');
+}
+
+loadUpdates();
+
+/* ── CAROUSEL ── */
+let slideIndex = 0;
+let slideTimer = null;
+function goSlide(n) {
+  slideIndex = n;
+  const track = document.getElementById('carouselTrack');
+  if(track) track.style.transform = 'translateX(-'+n*100+'%)';
+  document.querySelectorAll('.carousel-dot').forEach((d,i)=>d.classList.toggle('active',i===n));
+}
+function startCarousel(){
+  const carousel = document.getElementById('carousel');
+  if(!carousel) return;
+  let startX=0;
+  carousel.addEventListener('touchstart',e=>{startX=e.touches[0].clientX;},{passive:true});
+  carousel.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-startX;
+    if(Math.abs(dx)>40){goSlide(dx<0?Math.min(slideIndex+1,2):Math.max(slideIndex-1,0));}
+  },{passive:true});
+  slideTimer = setInterval(()=>goSlide((slideIndex+1)%3),5000);
+}
+
+/* ── ARTICLE OF THE DAY ── */
+function getAOD(){
+  const allArts = SECTIONS.flatMap(s=>s.articles);
+  // Seed based on CT date (UTC-6 standard, UTC-5 daylight — use UTC-6 approx)
+  const now = new Date();
+  const ct = new Date(now.getTime() - 6*60*60*1000);
+  const seed = ct.getFullYear()*10000 + (ct.getMonth()+1)*100 + ct.getDate();
+  // Simple seeded random
+  let s = seed;
+  s = ((s >>> 16) ^ s) * 0x45d9f3b;
+  s = ((s >>> 16) ^ s) * 0x45d9f3b;
+  s = (s >>> 16) ^ s;
+  const idx = Math.abs(s) % allArts.length;
+  return allArts[idx];
+}
+
+function renderAOD(){
+  const art = getAOD();
+  // Section color for background
+  const sec = SECTIONS.find(s=>s.articles.some(a=>a.num===art.num));
+  const colors = [
+    'linear-gradient(135deg,#001529 0%,#002d54 60%,#c8a84b33 100%)',
+    'linear-gradient(135deg,#1a0a2e 0%,#2d1a54 60%,#c8a84b22 100%)',
+    'linear-gradient(135deg,#0a2918 0%,#1a4a2a 60%,#6dcf9422 100%)',
+    'linear-gradient(135deg,#2e1a0a 0%,#4a2a10 60%,#c8a84b22 100%)',
+    'linear-gradient(135deg,#0a1f3d 0%,#0d2647 60%,#4a8fc422 100%)',
+  ];
+  const bg = colors[Math.abs(getAOD().num.charCodeAt(0))%colors.length];
+  const url = EPG+art.slug;
+
+  // Carousel slide
+  const bgEl = document.getElementById('aodBg');
+  if(bgEl) bgEl.style.background = bg;
+  const titleEl = document.getElementById('aodTitle');
+  if(titleEl) titleEl.textContent = art.num+' — '+art.name;
+  const btnEl = document.getElementById('aodBtn');
+  if(btnEl) btnEl.href = url;
+  const eyeEl = document.getElementById('aodEyebrow');
+  if(eyeEl) eyeEl.textContent = 'Article of the Day · '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
+
+  // Persistent strip
+  const strip = document.getElementById('aodStrip');
+  if(strip) strip.href = url;
+  const stripName = document.getElementById('aodStripName');
+  if(stripName) stripName.textContent = art.num+' — '+art.name;
+}
+
+/* ── HISTORY ── */
+let viewHistory = JSON.parse(localStorage.getItem('epg_history')||'[]');
+function saveHistory(){localStorage.setItem('epg_history',JSON.stringify(viewHistory));}
+function addToHistory(num,name,slug){
+  viewHistory = viewHistory.filter(h=>h.num!==num);
+  viewHistory.unshift({num,name,slug,ts:Date.now()});
+  if(viewHistory.length>10) viewHistory=viewHistory.slice(0,10);
+  saveHistory();
+}
+function relTime(ts){
+  const s=Math.round((Date.now()-ts)/1000);
+  if(s<60) return 'just now';
+  if(s<3600) return Math.round(s/60)+'m ago';
+  if(s<86400) return Math.round(s/3600)+'h ago';
+  return Math.round(s/86400)+'d ago';
+}
+function renderHistory(){
+  const el=document.getElementById('histContainer');
+  if(!viewHistory.length){
+    el.innerHTML=`<div class="history-empty"><i class="ti ti-clock-hour-4"></i>No history yet.<br><span style="font-size:13px;margin-top:6px;display:block;">Articles you open will appear here.</span></div>`;
+    return;
+  }
+  el.innerHTML='<div style="height:8px;"></div>'+viewHistory.map(h=>`
+    <a class="hist-row" href="${EPG}${h.slug}" target="_blank" onclick="addToHistory('${h.num}','${h.name.replace(/'/g,"\'")}','${h.slug}')">
+      <span class="hist-num">${h.num}</span>
+      <span class="hist-name">${h.name}</span>
+      <span class="hist-time">${relTime(h.ts)}</span>
+    </a>`).join('')+
+    `<div style="padding:12px 16px;text-align:right;">
+      <button onclick="clearHistory()" style="background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;">Clear history</button>
+    </div>`;
+}
+function clearHistory(){viewHistory=[];saveHistory();renderHistory();}
+
+/* ── RANDOM ARTICLE ── */
+function openRandom(){
+  const allArts=SECTIONS.flatMap(s=>s.articles);
+  const art=allArts[Math.floor(Math.random()*allArts.length)];
+  addToHistory(art.num,art.name,art.slug);
+  window.open(EPG+art.slug,'_blank');
+}
+
+/* history rendering handled inline in goTab check below */
+
+// Init
+startCarousel();
+renderAOD();
+
+</script>
+</body>
+</html>
