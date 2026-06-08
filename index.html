@@ -1,1 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MoDOT EPG">
+<meta name="theme-color" content="#001529">
+<title>MoDOT Engineering Policy Guide</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --blue:#001529;--blue2:#002d54;--blue3:#1a4a7a;--gold:#e8a020;
+  --text:#1a1a1a;--text2:#555;--text3:#888;
+  --border:#e2e2e2;--bg:#f4f4f6;--card:#ffffff;
+  --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
+}
+@media(prefers-color-scheme:dark){:root{
+  --text:#f0f0f0;--text2:#bbb;--text3:#666;
+  --border:#2a2a2a;--bg:#0d0d0d;--card:#1a1a1a;
+  --blue3:#4a8fc4;
+}}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+.status-space{height:var(--safe-top);background:var(--blue);}
+.header{background:var(--blue);padding:14px 16px 16px;flex-shrink:0;}
+.header-row{display:flex;align-items:center;gap:12px;}
+.logo{width:42px;height:42px;border-radius:10px;background:var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;}
+.logo svg{width:38px;height:38px;}
+.header-title{color:white;font-size:15px;font-weight:600;letter-spacing:-0.2px;line-height:1.3;}
+.search-wrap{padding:10px 16px 0;background:var(--blue);}
+.search-inner{background:rgba(255,255,255,0.13);border-radius:10px;display:flex;align-items:center;padding:0 12px;gap:8px;}
+.search-inner input{background:none;border:none;outline:none;color:white;font-size:16px;padding:10px 0;flex:1;}
+.search-inner input::placeholder{color:rgba(255,255,255,0.5);}
+.search-inner .clr{background:none;border:none;color:rgba(255,255,255,0.6);font-size:17px;cursor:pointer;padding:4px;line-height:1;display:none;}
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.tabbar{background:var(--card);border-top:0.5px solid var(--border);display:flex;padding-bottom:var(--safe-bot);flex-shrink:0;}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px 6px;cursor:pointer;color:var(--text3);font-size:10px;gap:3px;border:none;background:none;}
+.tab i{font-size:22px;line-height:1;}
+.tab.active{color:var(--blue3);}
+.view{display:none;}
+.view.active{display:block;}
+.section-label{padding:8px 16px 4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3);}
 
+/* HOME */
+.home-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:16px;}
+.home-card{background:var(--card);border:0.5px solid var(--border);border-radius:14px;padding:16px 14px 14px;cursor:pointer;display:flex;flex-direction:column;gap:8px;}
+.home-card:active{opacity:0.7;}
+.home-card-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;}
+.home-card-name{font-size:14px;font-weight:500;line-height:1.3;}
+.home-card-desc{font-size:11px;color:var(--text3);line-height:1.4;}
+.update-row{background:var(--card);border-bottom:0.5px solid var(--border);padding:13px 16px;display:block;text-decoration:none;color:inherit;}
+.update-row:first-of-type{border-top:0.5px solid var(--border);}
+.update-row:active{opacity:0.7;}
+.update-date{font-size:11px;font-weight:600;color:var(--blue3);margin-bottom:4px;}
+.update-title{font-size:14px;font-weight:500;line-height:1.35;color:var(--text);}
+.update-desc{font-size:12px;color:var(--text3);margin-top:3px;line-height:1.4;}
+.loading-row{padding:24px 16px;text-align:center;color:var(--text3);font-size:14px;}
+
+/* SEARCH */
+.search-hint{padding:52px 24px;text-align:center;color:var(--text3);font-size:14px;}
+.search-hint i{font-size:38px;display:block;margin-bottom:10px;color:var(--border);}
+.result-row{background:var(--card);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:12px;padding:13px 16px;text-decoration:none;color:inherit;}
+.result-row:first-of-type{border-top:0.5px solid var(--border);}
+.result-row:active{opacity:0.7;}
+.result-num{font-size:11px;font-weight:600;color:var(--blue3);background:#e6f1fb;padding:3px 7px;border-radius:5px;white-space:nowrap;flex-shrink:0;align-self:flex-start;margin-top:2px;}
+@media(prefers-color-scheme:dark){.result-num{background:#0d2035;}}
+.result-info{flex:1;}
+.result-info .rt{font-size:15px;font-weight:500;line-height:1.3;}
+.result-info .rs{font-size:12px;color:var(--text3);margin-top:2px;}
+.result-info mark{background:#fff3b0;color:#1a1a1a;border-radius:2px;padding:0 1px;}
+@media(prefers-color-scheme:dark){.result-info mark{background:#4a3a00;color:#f0f0f0;}}
+.no-results{padding:40px 24px;text-align:center;color:var(--text3);font-size:14px;}
+.no-results a{color:var(--blue3);text-decoration:none;display:block;margin-top:10px;font-size:15px;}
+
+/* BROWSE */
+.browse-back{background:var(--card);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:6px;padding:13px 16px;cursor:pointer;color:var(--blue3);font-size:15px;}
+.browse-back:active{opacity:0.7;}
+.sec-row{background:var(--card);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;}
+.sec-row:first-of-type{border-top:0.5px solid var(--border);}
+.sec-row:active{opacity:0.7;}
+.sec-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sec-icon i{font-size:20px;}
+.sec-info{flex:1;}
+.sec-info .sn{font-size:15px;font-weight:500;}
+.sec-info .sc{font-size:12px;color:var(--text3);margin-top:1px;}
+.sec-chev{color:var(--text3);font-size:18px;}
+
+/* ARTICLE ROW — num links left, bookmark only on right */
+.art-row{background:var(--card);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:10px;padding:11px 16px;}
+.art-row:first-of-type{border-top:0.5px solid var(--border);}
+.art-num-link{font-size:12px;font-weight:600;color:var(--blue3);background:#e6f1fb;padding:4px 8px;border-radius:6px;white-space:nowrap;flex-shrink:0;text-decoration:none;display:inline-block;}
+@media(prefers-color-scheme:dark){.art-num-link{background:#0d2035;}}
+.art-name-link{flex:1;font-size:15px;line-height:1.3;color:var(--text);text-decoration:none;}
+.art-bm{background:none;border:none;color:var(--text3);font-size:20px;padding:6px 4px;cursor:pointer;flex-shrink:0;line-height:1;}
+.art-bm.saved{color:var(--gold);}
+.art-row-full{background:var(--card);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:10px;padding:11px 16px;text-decoration:none;color:var(--text3);font-size:14px;margin-top:4px;border-top:1px solid var(--border);}
+
+/* BOOKMARKS */
+.bookmark-empty{padding:60px 24px;text-align:center;color:var(--text3);}
+.bookmark-empty i{font-size:40px;display:block;margin-bottom:12px;color:var(--border);}
+.bm-row{background:var(--card);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:10px;padding:11px 16px;}
+.bm-row:first-of-type{border-top:0.5px solid var(--border);}
+.bm-num-link{font-size:12px;font-weight:600;color:var(--blue3);background:#e6f1fb;padding:4px 8px;border-radius:6px;white-space:nowrap;flex-shrink:0;text-decoration:none;}
+@media(prefers-color-scheme:dark){.bm-num-link{background:#0d2035;}}
+.bm-name-link{flex:1;font-size:15px;line-height:1.3;color:var(--text);text-decoration:none;}
+.bm-del{background:none;border:none;color:var(--text3);font-size:20px;padding:6px 4px;cursor:pointer;flex-shrink:0;line-height:1;}
+
+/* LINKS */
+.link-row{background:var(--card);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:12px;padding:13px 16px;text-decoration:none;color:inherit;}
+.link-row:first-of-type{border-top:0.5px solid var(--border);}
+.link-row:active{opacity:0.7;}
+.link-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.link-icon i{font-size:18px;}
+.link-info{flex:1;}
+.link-info .ln{font-size:15px;font-weight:500;}
+.link-info .ls{font-size:12px;color:var(--text3);margin-top:1px;}
+.link-ext{color:var(--text3);font-size:14px;}
+</style>
+</head>
+<body>
+<div class="status-space"></div>
+<div class="header">
+  <div class="header-row">
+    <div class="logo">
+      <svg viewBox="0 0 38 38" xmlns="http://www.w3.org/2000/svg">
+        <rect width="38" height="38" rx="0" fill="#0a1f3d"/>
+        <rect x="4" y="4" width="30" height="30" rx="5" fill="#0d2647"/>
+        <line x1="11" y1="33" x2="11" y2="5" stroke="#c8a84b" stroke-width="1.2" stroke-dasharray="3.5 2.5" stroke-linecap="round"/>
+        <line x1="19" y1="33" x2="19" y2="5" stroke="#c8a84b" stroke-width="2.2" stroke-linecap="round"/>
+        <line x1="27" y1="33" x2="27" y2="5" stroke="#c8a84b" stroke-width="1.2" stroke-dasharray="3.5 2.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="header-title">MoDOT Engineering Policy Guide</div>
+  </div>
+  <div class="search-wrap" id="searchWrap" style="display:none;">
+    <div class="search-inner">
+      <i class="ti ti-search" style="color:rgba(255,255,255,0.6);font-size:16px;" aria-hidden="true"></i>
+      <input type="search" id="searchInput" placeholder="Search articles, topics…" autocomplete="off" autocorrect="off" spellcheck="false">
+      <button class="clr" id="searchClr" aria-label="Clear">✕</button>
+    </div>
+  </div>
+</div>
+
+<div class="content" id="mainContent">
+
+  <!-- HOME -->
+  <div class="view active" id="view-home">
+    <div class="home-grid">
+      <div class="home-card" onclick="goTab('search')">
+        <div class="home-card-icon" style="background:#e6f1fb;"><i class="ti ti-search" style="color:#0c447c;" aria-hidden="true"></i></div>
+        <div class="home-card-name">Search</div>
+        <div class="home-card-desc">Find by keyword or number</div>
+      </div>
+      <div class="home-card" onclick="goTab('browse')">
+        <div class="home-card-icon" style="background:#eaf3de;"><i class="ti ti-layout-list" style="color:#27500a;" aria-hidden="true"></i></div>
+        <div class="home-card-name">Browse</div>
+        <div class="home-card-desc">All sections 100–1100</div>
+      </div>
+      <div class="home-card" onclick="goTab('bookmarks')">
+        <div class="home-card-icon" style="background:#faeeda;"><i class="ti ti-bookmark" style="color:#633806;" aria-hidden="true"></i></div>
+        <div class="home-card-name">Bookmarks</div>
+        <div class="home-card-desc">Your saved articles</div>
+      </div>
+      <div class="home-card" onclick="goTab('links')">
+        <div class="home-card-icon" style="background:#f5f0fe;"><i class="ti ti-external-link" style="color:#3c3489;" aria-hidden="true"></i></div>
+        <div class="home-card-name">Resources</div>
+        <div class="home-card-desc">Specs, plans &amp; links</div>
+      </div>
+    </div>
+    <div class="section-label">Recent policy changes</div>
+    <div id="updatesContainer"><div class="loading-row"><i class="ti ti-loader" style="font-size:18px;"></i> Loading…</div></div>
+    <div style="height:16px;"></div>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="view" id="view-search">
+    <div class="search-hint" id="searchHint">
+      <i class="ti ti-search" aria-hidden="true"></i>
+      Type to search all EPG articles
+    </div>
+    <div id="searchResults"></div>
+  </div>
+
+  <!-- BROWSE -->
+  <div class="view" id="view-browse">
+    <div id="browseMain"></div>
+    <div id="browseSub" style="display:none;"></div>
+  </div>
+
+  <!-- BOOKMARKS -->
+  <div class="view" id="view-bookmarks">
+    <div id="bmContainer"></div>
+  </div>
+
+  <!-- LINKS -->
+  <div class="view" id="view-links">
+    <div style="height:8px;"></div>
+    <div class="section-label">EPG quick links</div>
+    <div id="quickLinksEl"></div>
+    <div class="section-label" style="margin-top:8px;">Other MoDOT standards</div>
+    <div id="otherLinksEl"></div>
+    <div style="padding:16px;font-size:12px;color:var(--text3);text-align:center;">All links open epg.modot.org in your browser</div>
+  </div>
+
+</div>
+
+<div class="tabbar">
+  <button class="tab active" id="tab-home" onclick="goTab('home')" aria-label="Home"><i class="ti ti-home" aria-hidden="true"></i>Home</button>
+  <button class="tab" id="tab-search" onclick="goTab('search')" aria-label="Search"><i class="ti ti-search" aria-hidden="true"></i>Search</button>
+  <button class="tab" id="tab-browse" onclick="goTab('browse')" aria-label="Browse"><i class="ti ti-layout-list" aria-hidden="true"></i>Browse</button>
+  <button class="tab" id="tab-bookmarks" onclick="goTab('bookmarks')" aria-label="Bookmarks"><i class="ti ti-bookmark" aria-hidden="true"></i>Bookmarks</button>
+  <button class="tab" id="tab-links" onclick="goTab('links')" aria-label="Resources"><i class="ti ti-external-link" aria-hidden="true"></i>Resources</button>
+</div>
+
+<script>
+const BASE = 'https://epg.modot.org/index.php/';
+const TABS = ['home','search','browse','bookmarks','links'];
+
+const SECTIONS = [
+  {num:'100',name:'General',icon:'ti-clipboard-list',bg:'#e6f1fb',ic:'#0c447c',slug:'Category:100_GENERAL',articles:[
+    {num:'101',name:'Standard Forms and Checklists',slug:'Category:101_Standard_Forms'},
+    {num:'102',name:'Bidding Requirements and Conditions',slug:'102_Bidding_Requirements_and_Conditions'},
+    {num:'103',name:'Award and Execution of Contract',slug:'103_Award_and_Execution_of_Contract'},
+    {num:'104',name:'Scope of Work',slug:'104_Scope_of_Work'},
+    {num:'105',name:'Control of Work',slug:'105_Control_of_Work'},
+    {num:'106',name:'Control of Materials',slug:'106_Control_of_Materials'},
+    {num:'107',name:'Legal Relations and Responsibility to Public',slug:'107_Legal_Relations_and_Responsibility_to_Public'},
+    {num:'108',name:'Prosecution and Progress',slug:'108_Prosecution_and_Progress'},
+    {num:'109',name:'Measurement and Payment',slug:'109_Measurement_and_Payment'},
+    {num:'110',name:'Construction Records and Reports',slug:'110_Construction_Records_and_Reports'},
+    {num:'121',name:'Project Planning and Prioritization',slug:'121_Project_Planning,_Prioritization_and_STIP_Commitments'},
+    {num:'127',name:'Design-Build',slug:'127_Design-Build'},
+    {num:'130',name:'Construction Inspection',slug:'Category:130_Construction_Inspection'},
+    {num:'136',name:'Local Public Agency (LPA) Policy',slug:'LPA:136_Local_Public_Agency_(LPA)_Policy'},
+    {num:'143',name:'Practical Design',slug:'Category:143_Practical_Design'},
+    {num:'150',name:'Environmental',slug:'Category:150_Environmental'},
+    {num:'160',name:'Utilities',slug:'Category:160_Utilities'},
+    {num:'170',name:'Right of Way',slug:'Category:170_Right_of_Way'},
+  ]},
+  {num:'200',name:'Geometrics',icon:'ti-ruler-2',bg:'#eaf3de',ic:'#27500a',slug:'Category:200_GEOMETRICS',articles:[
+    {num:'201',name:'Geometric Policy',slug:'201_Geometric_Policy'},
+    {num:'210',name:'Cross Section Elements',slug:'210_Cross_Section_Elements'},
+    {num:'220',name:'Sight Distance',slug:'220_Sight_Distance'},
+    {num:'225',name:'Horizontal Alignment',slug:'225_Horizontal_Alignment'},
+    {num:'230',name:'Vertical Alignment',slug:'230_Vertical_Alignment'},
+    {num:'235',name:'Superelevation',slug:'235_Superelevation'},
+    {num:'240',name:'Intersections',slug:'240_Intersections'},
+    {num:'250',name:'Interchanges',slug:'250_Interchanges'},
+    {num:'260',name:'Access Management',slug:'260_Access_Management'},
+    {num:'262',name:'Driveways',slug:'262_Driveways'},
+  ]},
+  {num:'300',name:'Bases',icon:'ti-layer-intersect',bg:'#faeeda',ic:'#633806',slug:'Category:300_BASES',articles:[
+    {num:'301',name:'Soil Surveys and Earthwork',slug:'301_Soil_Surveys_and_Earthwork'},
+    {num:'303',name:'Aggregate Base Course',slug:'303_Aggregate_Base_Course'},
+    {num:'304',name:'Granular Base',slug:'304_Granular_Base'},
+    {num:'306',name:'Lean Concrete Base',slug:'306_Lean_Concrete_Base'},
+    {num:'307',name:'Cement Treated Base',slug:'307_Cement_Treated_Base'},
+    {num:'310',name:'Subgrade Preparation',slug:'310_Subgrade_Preparation'},
+  ]},
+  {num:'400',name:'Flexible Pavement',icon:'ti-road',bg:'#f5f0fe',ic:'#3c3489',slug:'Category:400_FLEXIBLE_PAVEMENT',articles:[
+    {num:'401',name:'Plant Mix Bituminous Pavement',slug:'401_Plant_Mix_Bituminous_Pavement'},
+    {num:'402',name:'Bituminous Seal Coat',slug:'402_Bituminous_Seal_Coat'},
+    {num:'403',name:'Asphalt Surface Treatment',slug:'403_Asphalt_Surface_Treatment'},
+    {num:'407',name:'Microsurfacing',slug:'407_Microsurfacing'},
+    {num:'408',name:'Slurry Seal',slug:'408_Slurry_Seal'},
+    {num:'410',name:'Pavement Design',slug:'410_Pavement_Design'},
+    {num:'411',name:'Pavement Preservation',slug:'411_Pavement_Preservation'},
+  ]},
+  {num:'500',name:'Rigid Pavement',icon:'ti-grid-dots',bg:'#e6f1fb',ic:'#0c447c',slug:'Category:500_RIGID_PAVEMENT',articles:[
+    {num:'501',name:'Portland Cement Concrete Pavement',slug:'501_Portland_Cement_Concrete_Pavement'},
+    {num:'502',name:'Concrete Pavement Restoration',slug:'502_Concrete_Pavement_Restoration'},
+    {num:'504',name:'Bridge Deck Overlays',slug:'504_Bridge_Deck_Overlays'},
+    {num:'505',name:'Concrete Joints',slug:'505_Concrete_Joints'},
+    {num:'506',name:'Concrete Pavement Design',slug:'506_Concrete_Pavement_Design'},
+  ]},
+  {num:'600',name:'Incidental Construction',icon:'ti-tools',bg:'#fcebeb',ic:'#a32d2d',slug:'Category:600_INCIDENTAL_CONSTRUCTION',articles:[
+    {num:'601',name:'Culverts and Sewers',slug:'601_Culverts_and_Sewers'},
+    {num:'602',name:'Drainage Structures',slug:'602_Drainage_Structures'},
+    {num:'603',name:'Guard Cable',slug:'606.2_Guard_Cable'},
+    {num:'604',name:'Miscellaneous Drainage',slug:'604_Miscellaneous_Drainage'},
+    {num:'605',name:'Underdrainage',slug:'605_Underdrainage'},
+    {num:'606',name:'Guardrail and Guard Cable',slug:'606.1_Guardrail'},
+    {num:'607',name:'Fencing',slug:'607_Fencing'},
+    {num:'608',name:'Concrete Median, Sidewalk, Curb Ramps',slug:'608_Concrete_Median,_Median_Strip,_Sidewalk,_Curb_Ramps,_Steps_and_Paved_Approaches'},
+    {num:'610',name:'Pavement Smoothness',slug:'610_Pavement_Smoothness'},
+    {num:'612',name:'Impact Attenuators',slug:'612_Impact_Attenuators'},
+    {num:'616',name:'Temporary Traffic Control',slug:'Category:616_Temporary_Traffic_Control_(MUTCD_Part_6)'},
+    {num:'620',name:'Erosion Control',slug:'620_Erosion_Control'},
+    {num:'621',name:'Stormwater',slug:'621_Stormwater'},
+  ]},
+  {num:'700',name:'Structures and Hydraulics',icon:'ti-building-bridge',bg:'#e1f5ee',ic:'#085041',slug:'Category:700_STRUCTURES_AND_HYDRAULICS',articles:[
+    {num:'700',name:'Bridge Design and Construction',slug:'Category:700_STRUCTURES_AND_HYDRAULICS'},
+    {num:'712',name:'Structural Steel Construction',slug:'Category:712_Structural_Steel_Construction'},
+    {num:'720',name:'Retaining Walls',slug:'720_Mechanically_Stabilized_Earth_Wall_Systems'},
+    {num:'745',name:'Culverts',slug:'745_Culverts'},
+    {num:'747',name:'Hydraulics',slug:'747_Hydraulics'},
+    {num:'748',name:'Stream Stability',slug:'748_Stream_Stability'},
+    {num:'749',name:'Scour',slug:'749_Scour'},
+    {num:'750',name:'Structural Concrete',slug:'Category:750_Structural_Concrete'},
+    {num:'751',name:'Steel Structures',slug:'Category:751_Steel_Structures'},
+    {num:'753',name:'Prestressed Concrete',slug:'Category:753_Prestressed_Concrete'},
+    {num:'756',name:'Foundations',slug:'Category:756_Foundations'},
+  ]},
+  {num:'800',name:'Roadside Development',icon:'ti-trees',bg:'#eaf3de',ic:'#27500a',slug:'Category:800_ROADSIDE_DEVELOPMENT',articles:[
+    {num:'801',name:'Seeding and Sodding',slug:'801_Seeding_and_Sodding'},
+    {num:'802',name:'Planting',slug:'802_Planting'},
+    {num:'803',name:'Landscape Design',slug:'803_Landscape_Design'},
+    {num:'804',name:'Roadside Maintenance',slug:'804_Roadside_Maintenance'},
+    {num:'805',name:'Noise Barriers',slug:'805_Noise_Barriers'},
+    {num:'806',name:'Wetland Mitigation',slug:'806_Wetland_Mitigation'},
+    {num:'822',name:'Vegetation Management',slug:'822_Vegetation_Management'},
+  ]},
+  {num:'900',name:'Traffic Control',icon:'ti-traffic-lights',bg:'#fcebeb',ic:'#a32d2d',slug:'Category:900_TRAFFIC_CONTROL',articles:[
+    {num:'900',name:'Traffic Engineering Studies',slug:'900_Traffic_Engineering_Studies'},
+    {num:'902',name:'Signing',slug:'Category:902_Signing'},
+    {num:'903',name:'Pavement Markings',slug:'Category:903_Pavement_Markings'},
+    {num:'910',name:'Traffic Signals',slug:'Category:910_Traffic_Signals'},
+    {num:'920',name:'Highway Lighting',slug:'Category:920_Highway_Lighting'},
+    {num:'930',name:'Work Zone Traffic Control',slug:'930_Work_Zone_Traffic_Control'},
+    {num:'940',name:'Speed Limits',slug:'940_Speed_Limits'},
+  ]},
+  {num:'1000',name:'Materials',icon:'ti-flask',bg:'#f5f0fe',ic:'#3c3489',slug:'Category:1000_MATERIALS',articles:[
+    {num:'1001',name:'Sampling and Testing',slug:'1001_Sampling_and_Testing'},
+    {num:'1005',name:'Aggregate',slug:'Category:1005_Aggregate'},
+    {num:'1010',name:'Bituminous Materials',slug:'Category:1010_Bituminous_Materials'},
+    {num:'1015',name:'Portland Cement',slug:'Category:1015_Portland_Cement'},
+    {num:'1020',name:'Structural Steel',slug:'Category:1020_Structural_Steel'},
+    {num:'1025',name:'Pipe',slug:'Category:1025_Pipe'},
+    {num:'1030',name:'Concrete Mix Design',slug:'1030_Concrete_Mix_Design'},
+    {num:'1040',name:'Guardrail and Guard Cable Material',slug:'Category:1040_Guardrail,_End_Terminals,_One-Strand_Access_Restraint_Cable_and_Guard_Cable_Material'},
+  ]},
+  {num:'1100',name:'Maintenance Materials',icon:'ti-wrench',bg:'#faeeda',ic:'#633806',slug:'Category:1100_MAINTENANCE_MATERIALS',articles:[
+    {num:'1101',name:'Maintenance Operations',slug:'1101_Maintenance_Operations'},
+    {num:'1105',name:'Patching Materials',slug:'1105_Patching_Materials'},
+    {num:'1110',name:'Bridge Maintenance',slug:'1110_Bridge_Maintenance'},
+    {num:'1115',name:'Drainage Maintenance',slug:'1115_Drainage_Maintenance'},
+    {num:'1120',name:'Snow and Ice Control',slug:'1120_Snow_and_Ice_Control'},
+  ]},
+];
+
+const QUICK_LINKS = [
+  {icon:'ti-history',bg:'#e6f1fb',ic:'#0c447c',name:'Recent Policy Changes',desc:'Latest EPG updates',slug:'Recent_Policy_Changes_in_the_EPG'},
+  {icon:'ti-list-check',bg:'#eaf3de',ic:'#27500a',name:'Quick Reference Guides',desc:'Standard forms and QRGs',slug:'Category:101_Standard_Forms'},
+  {icon:'ti-cone',bg:'#fcebeb',ic:'#a32d2d',name:'Temporary Traffic Control',desc:'EPG 616',slug:'Category:616_Temporary_Traffic_Control_(MUTCD_Part_6)'},
+  {icon:'ti-help-circle',bg:'#f5f0fe',ic:'#3c3489',name:'EPG Help Article',desc:'How to use the EPG',slug:'Help_Article'},
+];
+const OTHER_LINKS = [
+  {icon:'ti-book',bg:'#e6f1fb',ic:'#0c447c',name:'Standard Specifications',desc:'Missouri highway construction specs',url:'https://www.modot.org/missouri-standard-specifications-highway-construction'},
+  {icon:'ti-map',bg:'#eaf3de',ic:'#27500a',name:'Standard Plans',desc:'Missouri highway construction plans',url:'https://www.modot.org/missouri-standard-plans-highway-construction'},
+  {icon:'ti-file-text',bg:'#faeeda',ic:'#633806',name:'Job Special Provisions',desc:'Project-specific provisions',url:BASE+'Job_Special_Provisions'},
+  {icon:'ti-letter-case',bg:'#f5f0fe',ic:'#3c3489',name:'Design Standard Letters',desc:'Design guidance letters',url:'https://www.modot.org/design-standard-letters'},
+  {icon:'ti-search',bg:'#fcebeb',ic:'#a32d2d',name:'Full EPG Web Search',desc:'Google search of epg.modot.org',url:'https://epg.modot.org/index.php?search'},
+];
+
+let bookmarks = JSON.parse(localStorage.getItem('epg_bm')||'[]');
+let searchTimer = null;
+
+function saveBookmarks(){localStorage.setItem('epg_bm',JSON.stringify(bookmarks));}
+
+function goTab(t){
+  TABS.forEach(id=>{
+    document.getElementById('view-'+id).classList.toggle('active',id===t);
+    document.getElementById('tab-'+id).classList.toggle('active',id===t);
+  });
+  document.getElementById('searchWrap').style.display=t==='search'?'block':'none';
+  document.getElementById('mainContent').scrollTop=0;
+  if(t==='browse') renderBrowseMain();
+  if(t==='bookmarks') renderBookmarks();
+  if(t==='links') renderLinks();
+  if(t==='search') document.getElementById('searchInput').focus();
+}
+
+/* UPDATES — parse wiki with real dates */
+async function loadUpdates(){
+  const el=document.getElementById('updatesContainer');
+  try{
+    const r=await fetch('https://epg.modot.org/api.php?action=parse&page=Recent_Policy_Changes_in_the_EPG&prop=wikitext&format=json&origin=*');
+    const d=await r.json();
+    const wt=d.parse.wikitext['*'];
+    const blocks=[];
+    let curDate='';
+    for(const line of wt.split('\n')){
+      const dateMatch=line.match(/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}/i);
+      if(dateMatch){curDate=dateMatch[0];continue;}
+      if(line.trim().startsWith('*')&&curDate){
+        const linkM=line.match(/\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]/);
+        const title=line.replace(/\[\[([^\]|#]+)(?:\|([^\]]+))?\]\]/g,(_,t,l)=>l||t).replace(/[*'[\]]/g,'').trim();
+        const slug=linkM?linkM[1].replace(/\s/g,'_'):'Recent_Policy_Changes_in_the_EPG';
+        const short=title.length>90?title.slice(0,90)+'…':title;
+        blocks.push({date:curDate,title:short,slug});
+        if(blocks.length>=10) break;
+      }
+    }
+    if(!blocks.length) throw new Error('empty');
+    el.innerHTML=blocks.map(b=>`
+      <a class="update-row" href="${BASE}${b.slug}" target="_blank">
+        <div class="update-date">${b.date}</div>
+        <div class="update-title">${b.title}</div>
+      </a>`).join('');
+  }catch(e){
+    el.innerHTML=`<a class="update-row" href="${BASE}Recent_Policy_Changes_in_the_EPG" target="_blank">
+      <div class="update-date">View all updates</div>
+      <div class="update-title">Recent Policy Changes in the EPG →</div>
+    </a>`;
+  }
+}
+
+/* SEARCH */
+document.getElementById('searchInput').addEventListener('input',function(){
+  const q=this.value.trim();
+  document.getElementById('searchClr').style.display=q?'inline':'none';
+  clearTimeout(searchTimer);
+  searchTimer=setTimeout(()=>runSearch(q),180);
+});
+document.getElementById('searchClr').addEventListener('click',function(){
+  document.getElementById('searchInput').value='';
+  this.style.display='none';
+  runSearch('');
+});
+function runSearch(q){
+  const res=document.getElementById('searchResults');
+  const hint=document.getElementById('searchHint');
+  if(!q){res.innerHTML='';hint.style.display='block';return;}
+  hint.style.display='none';
+  const lo=q.toLowerCase();
+  const matches=[];
+  SECTIONS.forEach(s=>{
+    s.articles.forEach(a=>{
+      const score=a.num.startsWith(lo)?3:a.name.toLowerCase().includes(lo)?2:a.num.toLowerCase().includes(lo)?2:s.name.toLowerCase().includes(lo)?1:0;
+      if(score>0) matches.push({...a,sname:s.name,score});
+    });
+  });
+  matches.sort((a,b)=>b.score-a.score);
+  const esc=q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const hl=t=>t.replace(new RegExp('('+esc+')','gi'),'<mark>$1</mark>');
+  if(!matches.length){
+    res.innerHTML=`<div class="no-results">No matches for "<strong>${q}</strong>"<a href="https://epg.modot.org/index.php?search=${encodeURIComponent(q)}" target="_blank">Search full EPG on web →</a></div>`;
+    return;
+  }
+  res.innerHTML=matches.slice(0,25).map(m=>`
+    <div class="result-row">
+      <a class="result-num" href="${BASE}${m.slug}" target="_blank">${m.num}</a>
+      <a class="result-info" href="${BASE}${m.slug}" target="_blank" style="text-decoration:none;color:inherit;">
+        <div class="rt">${hl(m.name)}</div>
+        <div class="rs">${m.sname}</div>
+      </a>
+    </div>`).join('')+`
+    <a class="result-row" href="https://epg.modot.org/index.php?search=${encodeURIComponent(q)}" target="_blank" style="border-top:1px solid var(--border);margin-top:4px;">
+      <span class="result-num" style="background:var(--blue2);color:white;">EPG</span>
+      <div class="result-info"><div class="rt">Search full EPG for "${q}"</div><div class="rs">Opens epg.modot.org</div></div>
+    </a>`;
+}
+
+/* BROWSE */
+function renderBrowseMain(){
+  const el=document.getElementById('browseMain');
+  if(el.dataset.built) return;
+  el.dataset.built='1';
+  el.innerHTML='<div style="height:8px;"></div>'+SECTIONS.map(s=>`
+    <div class="sec-row" onclick="openSection('${s.num}')">
+      <div class="sec-icon" style="background:${s.bg};"><i class="ti ${s.icon}" style="color:${s.ic};" aria-hidden="true"></i></div>
+      <div class="sec-info"><div class="sn">${s.num} — ${s.name}</div><div class="sc">${s.articles.length} articles</div></div>
+      <i class="ti ti-chevron-right sec-chev" aria-hidden="true"></i>
+    </div>`).join('');
+}
+function openSection(num){
+  const s=SECTIONS.find(x=>x.num===num);
+  if(!s) return;
+  const sub=document.getElementById('browseSub');
+  document.getElementById('browseMain').style.display='none';
+  sub.innerHTML=`<div class="browse-back" onclick="closeSection()"><i class="ti ti-chevron-left" aria-hidden="true"></i> Sections</div>
+    <div class="section-label">${s.num} — ${s.name}</div>`+
+    s.articles.map(a=>{
+      const saved=bookmarks.some(b=>b.num===a.num);
+      return `<div class="art-row">
+        <a class="art-num-link" href="${BASE}${a.slug}" target="_blank">${a.num}</a>
+        <a class="art-name-link" href="${BASE}${a.slug}" target="_blank">${a.name}</a>
+        <button class="art-bm${saved?' saved':''}" onclick="toggleBm('${a.num}','${a.name.replace(/'/g,"\\'")}',this)" aria-label="${saved?'Remove bookmark':'Bookmark'}">
+          <i class="ti ${saved?'ti-bookmark-filled':'ti-bookmark'}" aria-hidden="true"></i>
+        </button>
+      </div>`;
+    }).join('')+`
+    <a class="art-row-full" href="${BASE}${s.slug}" target="_blank">
+      <i class="ti ti-external-link" aria-hidden="true" style="margin-right:6px;"></i>View full section on EPG website
+    </a>`;
+  sub.style.display='block';
+  document.getElementById('mainContent').scrollTop=0;
+}
+function closeSection(){
+  document.getElementById('browseSub').style.display='none';
+  document.getElementById('browseMain').style.display='block';
+  document.getElementById('mainContent').scrollTop=0;
+}
+function toggleBm(num,name,btn){
+  const idx=bookmarks.findIndex(b=>b.num===num);
+  const a=SECTIONS.flatMap(s=>s.articles).find(x=>x.num===num);
+  if(idx>=0){
+    bookmarks.splice(idx,1);
+    btn.classList.remove('saved');
+    btn.innerHTML='<i class="ti ti-bookmark" aria-hidden="true"></i>';
+  } else {
+    bookmarks.push({num,name,slug:a?a.slug:num});
+    btn.classList.add('saved');
+    btn.innerHTML='<i class="ti ti-bookmark-filled" aria-hidden="true"></i>';
+  }
+  saveBookmarks();
+}
+
+/* BOOKMARKS */
+function renderBookmarks(){
+  const el=document.getElementById('bmContainer');
+  if(!bookmarks.length){
+    el.innerHTML=`<div class="bookmark-empty"><i class="ti ti-bookmark" aria-hidden="true"></i>No bookmarks yet.<br><span style="font-size:13px;margin-top:6px;display:block;">Browse sections and tap the bookmark icon to save articles.</span></div>`;
+    return;
+  }
+  el.innerHTML='<div style="height:8px;"></div>'+bookmarks.map(b=>`
+    <div class="bm-row">
+      <a class="bm-num-link" href="${BASE}${b.slug||b.num}" target="_blank">${b.num}</a>
+      <a class="bm-name-link" href="${BASE}${b.slug||b.num}" target="_blank">${b.name}</a>
+      <button class="bm-del" onclick="removeBm('${b.num}')" aria-label="Remove bookmark"><i class="ti ti-trash" aria-hidden="true"></i></button>
+    </div>`).join('');
+}
+function removeBm(num){
+  bookmarks=bookmarks.filter(b=>b.num!==num);
+  saveBookmarks();
+  renderBookmarks();
+}
+
+/* LINKS */
+function renderLinks(){
+  const qel=document.getElementById('quickLinksEl');
+  const oel=document.getElementById('otherLinksEl');
+  if(qel.dataset.built) return;
+  qel.dataset.built='1';
+  qel.innerHTML=QUICK_LINKS.map(l=>`
+    <a class="link-row" href="${BASE}${l.slug}" target="_blank">
+      <div class="link-icon" style="background:${l.bg};"><i class="ti ${l.icon}" style="color:${l.ic};" aria-hidden="true"></i></div>
+      <div class="link-info"><div class="ln">${l.name}</div><div class="ls">${l.desc}</div></div>
+      <i class="ti ti-chevron-right link-ext" aria-hidden="true"></i>
+    </a>`).join('');
+  oel.innerHTML=OTHER_LINKS.map(l=>`
+    <a class="link-row" href="${l.url}" target="_blank">
+      <div class="link-icon" style="background:${l.bg};"><i class="ti ${l.icon}" style="color:${l.ic};" aria-hidden="true"></i></div>
+      <div class="link-info"><div class="ln">${l.name}</div><div class="ls">${l.desc}</div></div>
+      <i class="ti ti-external-link link-ext" aria-hidden="true"></i>
+    </a>`).join('');
+}
+
+loadUpdates();
+</script>
+</body>
+</html>
